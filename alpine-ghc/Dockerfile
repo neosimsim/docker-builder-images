@@ -30,7 +30,6 @@ ARG GHC_VERSION=8.8.2
 RUN curl -O https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-src.tar.xz
 RUN tar xf ghc-${GHC_VERSION}-src.tar.xz
 WORKDIR /src/ghc-${GHC_VERSION}
-RUN ./boot
 RUN ./configure --disable-ld-override --prefix=/usr/lib/ghc-${GHC_VERSION}
 RUN make -j3
 USER root
