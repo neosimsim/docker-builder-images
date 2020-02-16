@@ -30,6 +30,13 @@ ARG GHC_VERSION=8.8.2
 RUN curl -O https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-src.tar.xz
 RUN tar xf ghc-${GHC_VERSION}-src.tar.xz
 WORKDIR /src/ghc-${GHC_VERSION}
+RUN cp mk/build.mk.sample mk/build.mk
+RUN echo 'HADDOCK_DOCS = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_HTML = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_PDF = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_PS = NO' >> mk/build.mk
+RUN echo 'INTEGER_LIBRARY = integer-simple' >> mk/build.mk
+RUN echo 'BuildFlavour = perf' >> mk/build.mk
 RUN ./configure --disable-ld-override --prefix=/usr/lib/ghc-${GHC_VERSION}
 RUN make -j3
 USER root
