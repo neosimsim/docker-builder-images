@@ -37,17 +37,17 @@ RUN echo 'BUILD_SPHINX_PDF = NO' >> mk/build.mk
 RUN echo 'BUILD_SPHINX_PS = NO' >> mk/build.mk
 RUN echo 'INTEGER_LIBRARY = integer-simple' >> mk/build.mk
 RUN echo 'BuildFlavour = perf' >> mk/build.mk
-RUN ./configure --disable-ld-override --prefix=/usr/lib/ghc-${GHC_VERSION}
+RUN ./configure --disable-ld-override --prefix=/apps/ghc-${GHC_VERSION}
 RUN make -j3
 USER root
 RUN make install
-RUN cabal v2-install --installdir /usr/lib/ghc-${GHC_VERSION}/bin --install-method copy cabal-install
-RUN cabal v2-install --installdir /usr/lib/ghc-${GHC_VERSION}/bin --install-method copy happy
-RUN cabal v2-install --installdir /usr/lib/ghc-${GHC_VERSION}/bin --install-method copy alex
+RUN cabal v2-install --installdir /apps/ghc-${GHC_VERSION}/bin --install-method copy cabal-install
+RUN cabal v2-install --installdir /apps/ghc-${GHC_VERSION}/bin --install-method copy happy
+RUN cabal v2-install --installdir /apps/ghc-${GHC_VERSION}/bin --install-method copy alex
 
 FROM alpine:3.10.1 as BUILDER
 ARG GHC_VERSION=8.8.2
-COPY --from=BOOTSTRAP /usr/lib/ghc-${GHC_VERSION} /usr/lib/ghc-${GHC_VERSION}
+COPY --from=BOOTSTRAP /apps/ghc-${GHC_VERSION} /usr/lib/ghc-${GHC_VERSION}
 RUN apk add --update --no-cache \
     build-base \
     git \
@@ -57,7 +57,7 @@ RUN apk add --update --no-cache \
     wget \
     zlib-dev
 RUN adduser -D ghc
-ENV PATH="/usr/lib/ghc-${GHC_VERSION}/bin:$PATH"
+ENV PATH="/apps/ghc-${GHC_VERSION}/bin:$PATH"
 WORKDIR /src
 RUN chown ghc /src
 USER ghc
