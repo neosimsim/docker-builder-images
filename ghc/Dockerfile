@@ -47,13 +47,13 @@ RUN cabal v2-install --installdir /apps/ghc-${GHC_VERSION}/bin --install-method 
 
 FROM alpine:3.10.1 as BUILDER
 ARG GHC_VERSION=8.8.2
-COPY --from=BOOTSTRAP /apps/ghc-${GHC_VERSION} /usr/lib/ghc-${GHC_VERSION}
+COPY --from=BOOTSTRAP /apps/ghc-${GHC_VERSION} /apps/ghc-${GHC_VERSION}
 RUN apk add --update --no-cache \
     build-base \
     git \
-    gmp-dev \
     libffi-dev \
     ncurses-dev \
+    ncurses-static \
     wget \
     zlib-dev
 RUN adduser -D ghc
