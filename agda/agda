@@ -1,0 +1,3 @@
+#!/bin/sh
+
+env GHC_ENVIRONMENT=agda $HOME/.cabal/bin/agda "$@"
