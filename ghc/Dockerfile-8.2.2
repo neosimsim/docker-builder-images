@@ -1,19 +1,18 @@
-FROM alpine:3.7 as BOOTSTRAP
+FROM neosimsim/ghc:8.0.2 as BOOTSTRAP
 
-ENV GHC_VERSION=8.0.2
+ENV GHC_VERSION=8.2.2
 # See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
-ENV CABAL_VERSION=1.24.0.2
+ENV CABAL_VERSION=2.0.0.1
 
+USER root
 RUN apk add --update --no-cache \
     autoconf \
     automake \
     binutils-gold \
     build-base \
-    cabal \
     coreutils \
     cpio \
     curl \
-    ghc \
     linux-headers \
     libffi-dev \
     llvm5 \
@@ -23,7 +22,6 @@ RUN apk add --update --no-cache \
     python3 \
     xz \
     zlib-dev
-RUN adduser -D ghc
 USER ghc
 RUN mkdir /home/ghc/src
 WORKDIR /home/ghc/src
@@ -58,7 +56,7 @@ RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
 
 
 FROM alpine:3.10.1 as BUILDER
-ENV GHC_VERSION=8.0.2
+ENV GHC_VERSION=8.2.2
 RUN apk add --update --no-cache \
     build-base \
     git \
