@@ -81,7 +81,7 @@ RUN cabal update
 RUN cabal init -n --is-executable -p tester -l BSD3
 RUN cabal run
 # test absence of integer-gmp
-RUN test -f /usr/lib/ghc-$GHC_VERSION/integer-simple-0.1.1.1/libHSinteger-simple-0.1.1.1.a
+RUN test -f /usr/lib/ghc-$GHC_VERSION/integer-simple-0.1.2.0/libHSinteger-simple-0.1.2.0.a
 
 FROM BUILDER as FINAL
 CMD ["ghci"]
