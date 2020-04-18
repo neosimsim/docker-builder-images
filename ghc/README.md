@@ -34,8 +34,7 @@ or
 
 	cabal v2-configure --constraint 'scientific +integer-simple'
 
-This will write proper constraints to you cabal.project.local.
-Source
+This will write proper constraints to your cabal.project.local.
 
 ## References
 ### Docker Hub
