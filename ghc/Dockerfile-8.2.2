@@ -1,8 +1,6 @@
 FROM neosimsim/ghc:8.0.2 as BOOTSTRAP
 
 ENV GHC_VERSION=8.2.2
-# See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
-ENV CABAL_VERSION=2.0.0.1
 
 USER root
 RUN apk add --update --no-cache \
@@ -38,22 +36,12 @@ RUN echo 'BUILD_SPHINX_PS = NO' >> mk/build.mk
 RUN echo 'INTEGER_LIBRARY = integer-simple' >> mk/build.mk
 RUN echo 'BuildFlavour = perf' >> mk/build.mk
 RUN ./configure --disable-ld-override
-RUN make -j3
+RUN make -j5
 RUN make binary-dist
-# install binary-dist to install cabal with this ghc version
-RUN mkdir /home/ghc/src/new-ghc
-RUN tar -xJC /home/ghc/src/new-ghc -f ghc-$GHC_VERSION-x86_64-alpine-linux.tar.xz
-WORKDIR /home/ghc/src/new-ghc/ghc-$GHC_VERSION
-RUN ls
-# add alpine to vendor list
-RUN sed -i 's,portbld,alpine,'  configure
-RUN ./configure --prefix=/home/ghc
-RUN make install
-ENV PATH=/home/ghc/bin:$PATH
 RUN cabal update
-RUN cabal install cabal-install-$CABAL_VERSION
+# See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
+RUN cabal install cabal-install-2.0.0.1
 RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
-
 
 FROM alpine:3.10.1 as BUILDER
 ENV GHC_VERSION=8.2.2
@@ -75,7 +63,7 @@ RUN sed -i 's,portbld,alpine,'  configure
 RUN ./configure --prefix=/usr
 RUN make install
 WORKDIR ..
-RUN rm -rf ghc-$GHC_VERSION 
+RUN rm -rf ghc-$GHC_VERSION
 RUN rm -rf ghc-$GHC_VERSION-x86_64-alpine-linux.tar.xz
 RUN adduser -D ghc
 WORKDIR /src
@@ -93,6 +81,8 @@ WORKDIR cabal-test
 RUN cabal update
 RUN cabal init -n --is-executable -p tester -l BSD3
 RUN cabal run
+# test absence of integer-gmp
+RUN test -f /usr/lib/ghc-$GHC_VERSION/integer-simple-0.1.1.1/libHSinteger-simple-0.1.1.1.a
 
 FROM BUILDER as FINAL
-
+CMD ["ghci"]
