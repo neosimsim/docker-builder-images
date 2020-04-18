@@ -43,6 +43,7 @@ RUN make binary-dist
 RUN cabal update
 # See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
 RUN cabal install cabal-install-1.24.0.2
+RUN mkdir /home/ghc/bin
 RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
 
 FROM alpine:3.10.1 as BUILDER
