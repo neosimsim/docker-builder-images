@@ -40,7 +40,7 @@ RUN make -j5
 RUN make binary-dist
 RUN cabal update
 # See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
-RUN cabal install cabal-install-2.0.0.1
+RUN cabal install cabal-install-2.2.0.0
 RUN mkdir /home/ghc/bin
 RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
 
