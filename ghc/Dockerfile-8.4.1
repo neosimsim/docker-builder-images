@@ -1,6 +1,6 @@
 FROM neosimsim/ghc:8.2.2 as BOOTSTRAP
 
-ENV GHC_VERSION=8.4.4
+ENV GHC_VERSION=8.4.1
 
 USER root
 RUN apk add --update --no-cache \
@@ -45,7 +45,7 @@ RUN mkdir /home/ghc/bin
 RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
 
 FROM alpine:3.10.1 as BUILDER
-ENV GHC_VERSION=8.4.4
+ENV GHC_VERSION=8.4.1
 RUN apk add --update --no-cache \
     build-base \
     git \
