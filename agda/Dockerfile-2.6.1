@@ -18,27 +18,22 @@ COPY agda $HOME/bin/agda
 # install std-lib
 ENV STDLIB_VERSION=1.3
 
-RUN mkdir $HOME/lib
-WORKDIR $HOME/lib
+RUN mkdir -p $HOME/lib/agda
+WORKDIR $HOME/lib/agda
 RUN wget -qO std-lib.zip https://github.com/agda/agda-stdlib/archive/v$STDLIB_VERSION.zip
 RUN unzip -q std-lib.zip
 RUN rm std-lib.zip
 RUN mkdir -p $HOME/.agda
-RUN echo $HOME/lib/agda-stdlib-$STDLIB_VERSION/standard-library.agda-lib > $HOME/.agda/libraries-$AGDA_VERSION
+RUN echo $HOME/lib/agda/agda-stdlib-$STDLIB_VERSION/standard-library.agda-lib > $HOME/.agda/libraries-$AGDA_VERSION
 RUN echo standard-library > $HOME/.agda/defaults
 
 WORKDIR  /src
 
 FROM BUILDER as TESTER
 
-USER root
-RUN apk update
-RUN apk add ncurses-static
-RUN apk add ncurses-static
-USER agda
-
 COPY hello-world.agda .
 RUN agda -c --ghc-flag '-static' --ghc-flag '-optl-pthread' --ghc-flag '-optl-static' hello-world.agda
 RUN ./hello-world
 
 FROM BUILDER as FINAL
+CMD ["/bin/sh"]
