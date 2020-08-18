@@ -1,0 +1,87 @@
+FROM neosimsim/ghc:8.8.3 as BOOTSTRAP
+
+ENV GHC_VERSION=8.10.2
+
+USER root
+RUN apk add --update --no-cache \
+    autoconf \
+    automake \
+    binutils-gold \
+    build-base \
+    coreutils \
+    cpio \
+    curl \
+    linux-headers \
+    libffi-dev \
+    llvm5 \
+    musl-dev \
+    ncurses-dev \
+    perl \
+    python3 \
+    xz \
+    zlib-dev
+USER ghc
+RUN mkdir /home/ghc/src
+WORKDIR /home/ghc/src
+RUN curl -sO https://downloads.haskell.org/~ghc/$GHC_VERSION/ghc-$GHC_VERSION-src.tar.xz
+RUN tar xf ghc-$GHC_VERSION-src.tar.xz
+WORKDIR /home/ghc/src/ghc-$GHC_VERSION
+RUN cp mk/build.mk.sample mk/build.mk
+RUN echo 'HADDOCK_DOCS = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_HTML = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_PDF = NO' >> mk/build.mk
+RUN echo 'BUILD_SPHINX_PS = NO' >> mk/build.mk
+RUN echo 'INTEGER_LIBRARY = integer-simple' >> mk/build.mk
+RUN echo 'BuildFlavour = perf' >> mk/build.mk
+ENV PATH=$PATH:/home/ghc/.cabal/bin
+RUN ./configure --disable-ld-override
+RUN make -j5
+RUN make binary-dist
+# See https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/libraries/version-history
+RUN cabal v2-update
+RUN cabal v2-install cabal-install-3.2.0.0
+RUN mkdir /home/ghc/bin
+RUN cp -H /home/ghc/.cabal/bin/cabal /home/ghc/bin/cabal
+
+FROM alpine:3.12.0 as BUILDER
+ENV GHC_VERSION=8.10.2
+RUN apk add --update --no-cache \
+    build-base \
+    git \
+    libffi-dev \
+    ncurses-dev \
+    ncurses-static \
+    perl \
+    wget \
+    xz \
+    zlib-dev
+COPY --from=BOOTSTRAP /home/ghc/src/ghc-$GHC_VERSION/ghc-$GHC_VERSION-x86_64-alpine-linux.tar.xz .
+COPY --from=BOOTSTRAP /home/ghc/bin/cabal /usr/bin/cabal
+RUN tar -xJf ghc-$GHC_VERSION-x86_64-alpine-linux.tar.xz
+WORKDIR ghc-$GHC_VERSION
+RUN ./configure --prefix=/usr
+RUN make install
+WORKDIR ..
+RUN rm -rf ghc-$GHC_VERSION
+RUN rm -rf ghc-$GHC_VERSION-x86_64-alpine-linux.tar.xz
+RUN adduser -D ghc
+WORKDIR /src
+RUN chown ghc /src
+USER ghc
+
+FROM BUILDER as TESTER
+# test static linking
+COPY Main.hs Main.hs
+RUN ghc -static -optl-pthread -optl-static Main.hs
+RUN ./Main
+# test cabal workflow
+RUN mkdir cabal-test
+WORKDIR cabal-test
+RUN cabal update
+RUN cabal init -n --is-executable -p tester -l BSD3
+RUN cabal run
+# test presence of integer-simple
+RUN test -f /usr/lib/ghc-$GHC_VERSION/integer-simple-0.1.2.0/libHSinteger-simple-0.1.2.0.a
+
+FROM BUILDER as FINAL
+CMD ["ghci"]
